@@ -17,9 +17,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-    private static final String PAYMENT_ID_HEADER = "payment_id";
+    public static final String PAYMENT_ID_HEADER = "payment_id";
     private final PaymentRepository paymentRepository;
     private final StateMachineFactory<PaymentState, PaymentEvent> factory;
+    private final PaymentStateChangeInterceptor paymentStateChangeInterceptor;
 
     @Override
     public Payment newPayment(final Payment payment) {
@@ -63,8 +64,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Stop the state machine and reset so as to set only the state from the entity object
         sm.stop();
-        sm.getStateMachineAccessor().doWithAllRegions(
-            sma -> sma.resetStateMachine(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null)));
+        sm.getStateMachineAccessor().doWithAllRegions(sma -> {
+            sma.addStateMachineInterceptor(paymentStateChangeInterceptor);
+            sma.resetStateMachine(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null));
+        });
 
         // Start the state machine and return
         sm.start();
