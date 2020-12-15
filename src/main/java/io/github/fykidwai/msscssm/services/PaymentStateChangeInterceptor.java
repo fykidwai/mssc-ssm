@@ -13,11 +13,13 @@ import io.github.fykidwai.msscssm.domain.Payment;
 import io.github.fykidwai.msscssm.domain.PaymentEvent;
 import io.github.fykidwai.msscssm.domain.PaymentState;
 import io.github.fykidwai.msscssm.repository.PaymentRepository;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class PaymentStateChangeInterceptor extends StateMachineInterceptorAdapter<PaymentState, PaymentEvent> {
 
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
     @Override
     public void preStateChange(final State<PaymentState, PaymentEvent> state, final Message<PaymentEvent> message,
