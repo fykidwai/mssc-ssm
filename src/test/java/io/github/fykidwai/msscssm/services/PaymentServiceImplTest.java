@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.setPrintAssertionsDescription;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,4 +53,21 @@ class PaymentServiceImplTest {
         System.out.println(preAuthedPayment);
     }
 
+    @Transactional
+    @RepeatedTest(10)
+    void testAuth() {
+        final Payment savedPayment = paymentService.newPayment(payment);
+
+        final StateMachine<PaymentState, PaymentEvent> preAuthSM = paymentService.preAuth(savedPayment.getId());
+
+        if (preAuthSM.getState().getId() == PaymentState.PRE_AUTH) {
+            System.out.println("Payment is Pre Authorized");
+
+            final StateMachine<PaymentState, PaymentEvent> authSM = paymentService.authorizePayment(savedPayment.getId());
+
+            System.out.println("Result of Auth: " + authSM.getState().getId());
+        } else {
+            System.out.println("Payment failed pre-auth...");
+        }
+    }
 }
